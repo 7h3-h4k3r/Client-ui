@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dragable</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"
+        integrity="sha256-sw0iNNXmOJbQhYFuC9OF2kOlD5KQKe1y5lfBn4C9Sjg=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/black-tie/theme.min.css"
+        integrity="sha512-3XFNUWwXWmbYEhNdBem3FxT5yfJ3hzM/1sMA1m7VO9LfOAO2ctBYnPDoJYusvdrFdIglFYVLYmwm4orqrz1PEg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="script.js"></script>
+</head>
+
+<body>
+    <div>
+        <div class="border border-2" id="outer">
+            <span class="border" id="inner">Drag</span>
+        </div>
+    </div>
+    <div class=" container my-5">
+        <form method="post">
+            <div class="input-group">
+                <!-- <span class="input-group-text">First and last name</span> -->
+                <input type="number" id="width" aria-label="Width" placeholder="Width" class="form-control ">
+                <input type="number" id="height" aria-label="Height" placeholder="Height" class="form-control ">
+            </div>
+        </form>
+
+    </div>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+</body>
+<script>
+    const outer = $("#outer");
+    outer.css("width", "400px");
+    outer.css("height", "400px");
+    $("form").on("input", function (event) {
+        event.preventDefault();
+        let width = $("#width").val();
+        let height = $("#height").val();
+        console.log(width, height);
+        outer.css("width", width + "px");
+        outer.css("height", height + "px");
+
+    })
+
+    const inner = $("#inner");
+
+
+    $(function () {
+        inner.draggable({
+            drag: function () {
+                var offset = $(this).offset();
+                var xPos = offset.left;
+                var yPos = offset.top;
+                $(this).text('x: ' + xPos + 'y: ' + yPos);
+            },
+            containment: "parent"
+        });
+
+        inner.droppable({
+            drop: function (event, ui) {
+                $(this)
+                    .addClass("ui-state-highlight")
+                    .find("p")
+                    .html("Dropped!");
+            },
+            containment: "parent"
+        });
+    });
+
+
+</script>
+
+</html>
