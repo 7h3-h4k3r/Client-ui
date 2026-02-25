@@ -2,15 +2,20 @@ import curses
 from libs.grid import Grid
 class Side:
 
-    def __init__(self,h,sideY,sideX):
-        self.Menu = ['Home','Group','Alice','Ben','Lexa','Robi','Konan','Panzy','aureGen',]
+    def __init__(self,h,w,menu):
+        self.Menu = menu 
         self.h = h
+        self.w = w
         self.offset = 0 
         self.selected = 0 
         self.win = None
-        self.sqfeet = (sideY,sideX)
+        self.sqfeet = self.setSqt()
         self._create_windows()
 
+    def selected_name(self):
+        return self.Menu[self.selected]
+    def setSqt(self):
+        return (Grid.gety(self.h),Grid.getx(self.w))
     def _create_windows(self):
         
         self.win = curses.newwin(
@@ -54,13 +59,8 @@ class Side:
         return self.win
     
     def Up(self):
-        h, w = self.win.getmaxyx()
-        visible_height = h - 2
-
         if self.selected > 0:
             self.selected -= 1
-
-            # If selection moves above current visible window
             if self.selected < self.offset:
                 self.offset -= 1
     def Down(self):

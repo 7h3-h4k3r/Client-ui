@@ -12,3 +12,7 @@ class Grid:
         if ops:
             return y * 70 // 100 
         return y * 30 // 100
+    
+    @staticmethod
+    def getSqt(y,x):
+        return(Grid.gety(y),Grid.getx(x))
