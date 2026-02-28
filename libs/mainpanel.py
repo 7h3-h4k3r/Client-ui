@@ -21,7 +21,18 @@ class MainPanel:
         ) 
         self.win.erase()
         self.win.box()
-     
+    def redraw_content(self):
+        self.win.addstr(1, 1, self.whois[:self.w - 4])
+        self.win.addstr(2, 1, 'Hello this From the chat server'[:self.w - 4])
+
+    def setBox(self,state=False):
+        if state:
+            self.win.attron(curses.color_pair(1))
+            self.win.box()
+            self.win.attroff(curses.color_pair(1))
+        else:
+            self.win.box()
+        self.win.refresh()
 
     def resize(self, h, w):
         self.h = h
@@ -37,8 +48,10 @@ class MainPanel:
         self.win.mvwin(sideY, sideX)
         self.win.erase()
         self.win.box()
+        self.redraw_content()
 
     def getmain(self):
         self.win.addstr(1,1,self.whois)
+        self.win.addstr(2,1,'Hello this From the chat server')
         return self.win
         
