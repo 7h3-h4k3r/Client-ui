@@ -1,14 +1,17 @@
 import curses
 from libs.grid import Grid
+# from ui import session
 
 class MainPanel:
 
 
-    def __init__(self,h,w,whois='Hello Welcome To  homePage'):
+    def __init__(self,h,w,whois=''):
         self.win = None 
         self.whois = whois
         self.h = h 
+        self.input_buffer = ''
         self.w = w 
+        self.scroll_offset = 0
         self._create_mainwin()
 
 
@@ -21,10 +24,35 @@ class MainPanel:
         ) 
         self.win.erase()
         self.win.box()
-    def redraw_content(self):
-        self.win.addstr(1, 1, self.whois[:self.w - 4])
-        self.win.addstr(2, 1, 'Hello this From the chat server'[:self.w - 4])
 
+    def redraw_content(self):
+        h , w = self.win.getmaxyx()
+        message = 'MESSAGE\'s'
+        x = (w - len(message)) // 2
+        # self.win.addstr(1, 1, self.whois[:self.w - 4])
+        self.win.addstr(1, x, message)
+        self.win.addstr(h- 2, 1, "> " + self.input_buffer)
+    def redraw_content(self):
+        self.win.erase()
+        self.win.box()
+
+        h, w = self.win.getmaxyx()
+
+        message = "MESSAGE's"
+        x = (w - len(message)) // 2
+        self.win.addstr(1, x, message)
+
+        prompt = "> "
+        max_input_width = w - len(prompt) - 3
+
+        if len(self.input_buffer) > max_input_width:
+            visible_input = self.input_buffer[-max_input_width:]
+        else:
+            visible_input = self.input_buffer
+
+        self.win.move(h - 2, 0)
+        self.win.clrtoeol()
+        self.win.addstr(h - 2, 1, prompt + visible_input)
     def setBox(self,state=False):
         if state:
             self.win.attron(curses.color_pair(1))
@@ -51,7 +79,22 @@ class MainPanel:
         self.redraw_content()
 
     def getmain(self):
+       
         self.win.addstr(1,1,self.whois)
-        self.win.addstr(2,1,'Hello this From the chat server')
+        self.redraw_content()
+       
+        curses.doupdate()
         return self.win
+    def send(self,session):
+        session.append('Me:'+self.input_buffer)
+        self.input_buffer = ''
+    def pop(self):
+        self.input_buffer = self.input_buffer[:-1]
+    def push(self,key):
+        self.input_buffer += chr(key)
+    def Up(self):
+        self.win.addstr(1,2,'Up is working Well')
+    
+    def Down(self):
+        self.win.addstr(1,2,'Down is working Well')
         

@@ -1,6 +1,7 @@
 import curses
 from curses import panel
 from libs.grid import Grid
+import textwrap
 from libs.sidebar import Side
 import time
 from libs.mainpanel import MainPanel
@@ -15,6 +16,7 @@ class UI:
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.active = 1
+        self.scrol= 0
         curses.curs_set(0)
         self.stdscr.keypad(True)
         self.h, self.w = self.stdscr.getmaxyx()
@@ -46,14 +48,41 @@ class UI:
             self.main_bar.resize(self.h,self.w)
         except Exception as e:
             raise(str(e))
+    def visible_message(self,win):
+        chat_height, w = self.main_bar.win.getmaxyx()
+        usable_height = chat_height - 5
+        max_width = w - 3
+        total_lines = 0
+        for msg in session['Group']:
+            total_lines += max(1, len(textwrap.wrap(msg, max_width)))
+
+        start = max(0, total_lines - usable_height - self.scrol)
+        end = total_lines - self.scrol
+
+        visible = session['Group'][start:end]
+        row = 3
+        for msg in visible:
+            wrapped = textwrap.wrap(msg, max_width)
+
+            for line in wrapped:
+                if row >= 3 + usable_height:
+                        break
+                win.addstr(row, 1, line)
+                row += 1
+
+            if row >= 3 + usable_height:
+                break
+    
         
     def _draw(self):
         try:
             self.stdscr.noutrefresh()
 
             self.side_bar.side_bar().noutrefresh()
-            self.main_bar.getmain().noutrefresh()
+            win = self.main_bar.getmain()
+            win.noutrefresh()
             self.brand()
+            self.visible_message(win)
             self.footer()
             curses.doupdate()
         except:
@@ -63,12 +92,17 @@ class UI:
         self._draw()
        
         self.side_bar.setBox(True)
-        
+        self.main_bar.redraw_content()
         while True:
-            
-            
+            if active:
+                self.main_bar.setBox()
+                self.side_bar.setBox(True)
+            else:
+                self.side_bar.setBox()
+                self.main_bar.setBox(True)
+   
             key = self.stdscr.getch()
-
+            
             if key == curses.KEY_RESIZE:
                 try:
                     self.updatewindow()
@@ -77,12 +111,8 @@ class UI:
                     pass
             elif key == 9:
                 if active:
-                    self.main_bar.setBox()
-                    self.side_bar.setBox(True)
                     active = 0
                 else:
-                    self.side_bar.setBox()
-                    self.main_bar.setBox(True)
                     active  = 1
             elif key == curses.KEY_DOWN:
                 if active:
@@ -97,7 +127,18 @@ class UI:
                     self.main_bar.Up()
                 self._draw()
 
+            elif 32 <= key and key <= 126:
+                if self.side_bar.selected_name() == 'Home':
+                    continue
+                self.main_bar.push(key=key)
+                self._draw()
 
+            elif key == curses.KEY_BACKSPACE:
+                self.main_bar.pop()
+                self._draw()
+            elif key in (10,13):
+                self.main_bar.send(session['Group'])
+                self._draw()
             elif key == ord('q'):
                 break
 

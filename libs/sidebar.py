@@ -77,17 +77,21 @@ class Side:
                 self.win.attroff(curses.color_pair(2))
             else:
                 self.win.addstr(y, 2, item[:w-4])
+
     
     def side_bar(self):
         self.side_bar_content()
+        curses.doupdate()
         return self.win
     
     def Up(self):
+        self.setBox(True)
         if self.selected >0:
             self.selected -= 1
             if self.selected < self.offset:
                 self.offset -= 1
     def Down(self):
+        self.setBox(True)
         h, w = self.win.getmaxyx()
         visible_height = h - 2
         if self.selected < len(self.Menu) - 1:
