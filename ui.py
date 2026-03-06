@@ -4,21 +4,57 @@ from libs.grid import Grid
 import textwrap
 from libs.sidebar import Side
 import time
+from threading import Thread, Event
 from libs.mainpanel import MainPanel
-
+import socket
+redraw_event = Event()
 session = {
     'Home' : [],
     'Group' : [],
 }
+class connServer:
+    
+    def __init__(self,host='0.0.0.0',port=5656):
+        self.socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.host = host 
+        self.port = port
+            
+    def setConf(self):
+        self.socket.connect((self.host,self.port))
+        
+    def getMsg(self):
+        while True:
+            try:
+                data = self.socket.recv(1024).decode()
+                if not data:
+                    continue
+                session['Group'].append(data)
+                redraw_event.set()
+            except:
+                self.socket.close()
+                break
 
+    def reciver(self):
+        self.setConf()
+        t = Thread(target=self.getMsg,daemon=True)
+        t.start()
+        
+    def send(self,data):
+        self.socket.sendall(data.encode())
+         
 class UI:
-#'Alice','Ben','Lexa','Robi','Konan','Panzy','aureGen',
+    
+            
+        
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.active = 1
-        self.scrol= 0
+        self.scroll_offset= 0
+        self.server = connServer()
+        self.server.reciver()
         curses.curs_set(0)
         self.stdscr.keypad(True)
+        self.stdscr.nodelay(True)
         self.h, self.w = self.stdscr.getmaxyx()
         self.side_bar = Side(self.h,self.w,['Home','Group'])
         self.main_bar = MainPanel(self.h,self.w)
@@ -48,45 +84,25 @@ class UI:
             self.main_bar.resize(self.h,self.w)
         except Exception as e:
             raise(str(e))
-    def visible_message(self,win):
-        chat_height, w = self.main_bar.win.getmaxyx()
-        usable_height = chat_height - 5
-        max_width = w - 3
-        total_lines = 0
-        for msg in session['Group']:
-            total_lines += max(1, len(textwrap.wrap(msg, max_width)))
-
-        start = max(0, total_lines - usable_height - self.scrol)
-        end = total_lines - self.scrol
-
-        visible = session['Group'][start:end]
-        row = 3
-        for msg in visible:
-            wrapped = textwrap.wrap(msg, max_width)
-
-            for line in wrapped:
-                if row >= 3 + usable_height:
-                        break
-                win.addstr(row, 1, line)
-                row += 1
-
-            if row >= 3 + usable_height:
-                break
+        
     
+     
         
     def _draw(self):
         try:
             self.stdscr.noutrefresh()
-
             self.side_bar.side_bar().noutrefresh()
             win = self.main_bar.getmain()
+     
             win.noutrefresh()
             self.brand()
-            self.visible_message(win)
+            self.main_bar.visible_message(session['Group'])
             self.footer()
             curses.doupdate()
         except:
             raise(' window size is too short')
+        
+        
     def loop(self):
         active = 1
         self._draw()
@@ -100,7 +116,11 @@ class UI:
             else:
                 self.side_bar.setBox()
                 self.main_bar.setBox(True)
-   
+
+            if redraw_event.is_set():
+                self._draw()
+                redraw_event.clear()
+            
             key = self.stdscr.getch()
             
             if key == curses.KEY_RESIZE:
@@ -120,6 +140,13 @@ class UI:
                 else:
                     self.main_bar.Down()
                 self._draw()
+            elif key == curses.KEY_F1:
+                
+                self._draw()
+
+            elif key == curses.KEY_F2:
+                
+                self._draw()
             elif key == curses.KEY_UP:
                 if active:
                     self.side_bar.Up()
@@ -136,13 +163,17 @@ class UI:
             elif key == curses.KEY_BACKSPACE:
                 self.main_bar.pop()
                 self._draw()
+     
             elif key in (10,13):
-                self.main_bar.send(session['Group'])
+                msg = self.main_bar.getData()
+                self.server.send(msg)
+                session['Group'].append(msg)
                 self._draw()
-            elif key == ord('q'):
+            elif key == curses.KEY_F4:
                 break
 
 
+        
 def main(stdscr):
     UI(stdscr)
 
