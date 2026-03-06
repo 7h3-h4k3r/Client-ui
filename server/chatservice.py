@@ -20,8 +20,8 @@ class GroupChat:
                 except Exception as e:
                     print(f'Error Client Connection {addr[0]} : Error {e}\r\n')
                     break 
-        self.broadcast(f'Client Disconnect {addr[0]}\r\n'.encode())
-        clients_list.pop(conn)
+        self.broadcast(f'[server] Client Disconnect {addr[0]}\r\n'.encode(),conn)
+        clients_list.remove(conn)
     
     def broadcast(self,data,sender):
         msg = data.decode()
@@ -30,7 +30,7 @@ class GroupChat:
                 try: 
                     conn.sendall(msg.encode())
                 except:
-                    clients_list.pop(conn)
+                    clients_list.remove(conn)
             
                 
     def setConf(self):
