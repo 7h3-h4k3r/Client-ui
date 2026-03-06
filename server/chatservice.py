@@ -1,6 +1,8 @@
 import socket
 from threading import Thread
-clients_list = []
+import random
+clients_list = {}
+
 class GroupChat:
     
     def __init__(self,host='0.0.0.0',port=5656):
@@ -9,7 +11,7 @@ class GroupChat:
         self.port = port 
         
     def clients(self,conn,addr):
-        clients_list.append(conn)
+        
         with conn: 
             while True:
                 try:
@@ -21,7 +23,7 @@ class GroupChat:
                     print(f'Error Client Connection {addr[0]} : Error {e}\r\n')
                     break 
         self.broadcast(f'[server] Client Disconnect {addr[0]}\r\n'.encode(),conn)
-        clients_list.remove(conn)
+        del clients_list[conn]
     
     def broadcast(self,data,sender):
         msg = data.decode()
@@ -30,13 +32,14 @@ class GroupChat:
                 try: 
                     conn.sendall(msg.encode())
                 except:
-                    clients_list.remove(conn)
+                    del clients_list[conn]
             
                 
     def setConf(self):
         self.socket.bind((self.host,self.port))
         self.socket.listen()
-        
+    
+
     def getConn(self):
         self.setConf()
         while True:
