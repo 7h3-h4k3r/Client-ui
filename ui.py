@@ -88,15 +88,18 @@ class UI:
     
      
         
-    def _draw(self):
+    def _draw(self,state=False):
         try:
             self.stdscr.noutrefresh()
             self.side_bar.side_bar().noutrefresh()
             win = self.main_bar.getmain()
-     
+            if state:
+                self.main_bar.home()
+            else:
+                self.main_bar.visible_message(session['Group'])
             win.noutrefresh()
             self.brand()
-            self.main_bar.visible_message(session['Group'])
+            
             self.footer()
             curses.doupdate()
         except:
@@ -105,10 +108,10 @@ class UI:
         
     def loop(self):
         active = 1
-        self._draw()
-       
+        self._draw(True)
+        
         self.side_bar.setBox(True)
-        self.main_bar.redraw_content()
+        # self.main_bar.redraw_content()
         while True:
             if active:
                 self.main_bar.setBox()
@@ -140,13 +143,7 @@ class UI:
                 else:
                     self.main_bar.Down()
                 self._draw()
-            elif key == curses.KEY_F1:
-                
-                self._draw()
-
-            elif key == curses.KEY_F2:
-                
-                self._draw()
+            
             elif key == curses.KEY_UP:
                 if active:
                     self.side_bar.Up()
@@ -165,10 +162,14 @@ class UI:
                 self._draw()
      
             elif key in (10,13):
-                msg = self.main_bar.getData()
-                self.server.send(msg)
-                session['Group'].append(msg)
-                self._draw()
+                state=False
+                if self.side_bar.selected_name() =='Home':
+                    state=True 
+                else:
+                    msg = self.main_bar.getData()
+                    self.server.send(msg)
+                    session['Group'].append(msg)
+                self._draw(state)
             elif key == curses.KEY_F4:
                 break
 

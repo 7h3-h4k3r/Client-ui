@@ -106,7 +106,16 @@ class MainPanel:
         self.win.erase()
         self.win.box()
         self.redraw_content()
+    def home(self):
+        self.win.erase()
+        self.win.box()
 
+        h, w = self.win.getmaxyx()
+
+        message = "This is hOME PAGE's"
+        x = (w - len(message)) // 2
+        self.win.addstr(1, x, message)
+       
     def getmain(self):
        
         self.win.addstr(1,1,self.whois)
